@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using MinimalAPIERP.Dtos;
+using Domain.Dtos;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text.Json;

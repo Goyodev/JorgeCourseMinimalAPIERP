@@ -1,11 +1,9 @@
-﻿using ERP.Data;
+﻿using Domain.Dtos;
+using ERP.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using MinimalAPIERP.Dtos;
-using Newtonsoft.Json;
-using System.Security.Claims;
+using MinimalAPIERP.Extensions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -25,48 +23,46 @@ internal static class CartItemApi
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        group.MapGet("/cartitems", async (AppDbContext db) =>
-            await db.CartItems.ToListAsync() is IList<CartItem> cartItems
-                ? Results.Json(cartItems, options)
+        group.MapGet("/cartitems", async ([AsParameters] ApiDependencies dep) =>
+        await dep.Context.CartItems.Include(ci => ci.Product).ToListAsync() is IList<CartItem> cartItems
+        ? Results.Json(dep.Mapper.Map<IList<CartItemDto>>(cartItems), options)
+        : Results.NotFound())
+    .WithOpenApi();
+
+        group.MapGet("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
+            await dep.Context.CartItems.Include(ci => ci.Product).SingleOrDefaultAsync(ci => ci.CartItemGuid == id) is CartItem cartItem
+                ? Results.Json(dep.Mapper.Map<CartItemDto>(cartItem), options)
                 : Results.NotFound())
             .WithOpenApi();
 
-        group.MapGet("/cartitems/{id}", async (AppDbContext db, Guid id) =>
-            await db.CartItems.FindAsync(id) is CartItem cartItem
-                ? Results.Json(cartItem, options)
-                : Results.NotFound())
-            .WithOpenApi();
-
-        group.MapPost("/cartitems", async (AppDbContext db, CartItem cartItem) =>
+        group.MapPost("/cartitems", async ([AsParameters] ApiDependencies dep, CartItemDto cartItemDto) =>
         {
-            cartItem.Guid = Guid.NewGuid();
-            db.CartItems.Add(cartItem);
-            await db.SaveChangesAsync();
-            return Results.Created($"/cartitems/{cartItem.CartItemId}", cartItem);
+            var cartItem = dep.Mapper.Map<CartItem>(cartItemDto);
+            cartItem.CartItemGuid = Guid.NewGuid();
+            dep.Context.CartItems.Add(cartItem);
+            await dep.Context.SaveChangesAsync();
+
+            var resultDto = dep.Mapper.Map<CartItemDto>(cartItem);
+            return Results.Created($"/cartitems/{resultDto.CartItemId}", resultDto);
         }).WithOpenApi();
 
-        group.MapPut("/cartitems/{id}", async (AppDbContext db, Guid id, CartItem updatedCartItem) =>
+        group.MapPut("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id, CartItemDto updatedCartItemDto) =>
         {
-            var cartItem = await db.CartItems.FindAsync(id);
+            var cartItem = await dep.Context.CartItems.Include(ci => ci.Product).SingleOrDefaultAsync(ci => ci.CartItemGuid == id);
             if (cartItem is null) return Results.NotFound();
 
-            cartItem.CartId = updatedCartItem.CartId;
-            cartItem.ProductId = updatedCartItem.ProductId;
-            cartItem.Count = updatedCartItem.Count;
-            cartItem.DateCreated = updatedCartItem.DateCreated;
-            
-
-            await db.SaveChangesAsync();
+            dep.Mapper.Map(updatedCartItemDto, cartItem);
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 
-        group.MapDelete("/cartitems/{id}", async (AppDbContext db, Guid id) =>
+        group.MapDelete("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
         {
-            var cartItem = await db.CartItems.FindAsync(id);
+            var cartItem = await dep.Context.CartItems.SingleOrDefaultAsync(ci => ci.CartItemGuid == id);
             if (cartItem is null) return Results.NotFound();
 
-            db.CartItems.Remove(cartItem);
-            await db.SaveChangesAsync();
+            dep.Context.CartItems.Remove(cartItem);
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 

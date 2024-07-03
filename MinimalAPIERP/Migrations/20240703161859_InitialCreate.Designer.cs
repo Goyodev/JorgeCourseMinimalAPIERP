@@ -4,6 +4,7 @@ using ERP.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MinimalAPIERP.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240703161859_InitialCreate")]
+    partial class InitialCreate
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,29 +24,6 @@ namespace MinimalAPIERP.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("ERP.Cart", b =>
-                {
-                    b.Property<int>("CartId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
-
-                    b.Property<Guid>("CartGuid")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CartId")
-                        .HasName("PK_dbo.Carts");
-
-                    b.ToTable("Carts");
-                });
 
             modelBuilder.Entity("ERP.CartItem", b =>
                 {
@@ -53,8 +33,9 @@ namespace MinimalAPIERP.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartItemId"));
 
-                    b.Property<int>("CartId")
-                        .HasColumnType("int");
+                    b.Property<string>("CartId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid>("CartItemGuid")
                         .HasColumnType("uniqueidentifier");
@@ -70,8 +51,6 @@ namespace MinimalAPIERP.Migrations
 
                     b.HasKey("CartItemId")
                         .HasName("PK_dbo.CartItems");
-
-                    b.HasIndex(new[] { "CartId" }, "IX_CartId");
 
                     b.HasIndex(new[] { "ProductId" }, "IX_ProductId");
 
@@ -239,6 +218,12 @@ namespace MinimalAPIERP.Migrations
                     b.Property<Guid>("ProductGuid")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("RecommendationId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("SalePrice")
+                        .HasColumnType("decimal(18, 2)");
+
                     b.Property<string>("SkuNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -256,23 +241,70 @@ namespace MinimalAPIERP.Migrations
                     b.ToTable("Products");
                 });
 
+            modelBuilder.Entity("ERP.Raincheck", b =>
+                {
+                    b.Property<int>("RaincheckId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RaincheckId"));
+
+                    b.Property<int>("Count")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("RaincheckGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<double>("SalePrice")
+                        .HasColumnType("float");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("int");
+
+                    b.HasKey("RaincheckId")
+                        .HasName("PK_dbo.Rainchecks");
+
+                    b.HasIndex(new[] { "ProductId" }, "IX_ProductId");
+
+                    b.HasIndex(new[] { "StoreId" }, "IX_StoreId");
+
+                    b.ToTable("Rainchecks");
+                });
+
+            modelBuilder.Entity("ERP.Store", b =>
+                {
+                    b.Property<int>("StoreId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("StoreId"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("StoreGuid")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("StoreId")
+                        .HasName("PK_dbo.Stores");
+
+                    b.ToTable("Stores");
+                });
+
             modelBuilder.Entity("ERP.CartItem", b =>
                 {
-                    b.HasOne("ERP.Cart", "Cart")
-                        .WithMany("CartItems")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_dbo.CartItems_dbo.Products_CartId");
-
                     b.HasOne("ERP.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_dbo.CartItems_dbo.Products_ProductId");
-
-                    b.Navigation("Cart");
 
                     b.Navigation("Product");
                 });
@@ -310,9 +342,25 @@ namespace MinimalAPIERP.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("ERP.Cart", b =>
+            modelBuilder.Entity("ERP.Raincheck", b =>
                 {
-                    b.Navigation("CartItems");
+                    b.HasOne("ERP.Product", "Product")
+                        .WithMany("Rainchecks")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_dbo.Rainchecks_dbo.Products_ProductId");
+
+                    b.HasOne("ERP.Store", "Store")
+                        .WithMany("Rainchecks")
+                        .HasForeignKey("StoreId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_dbo.Rainchecks_dbo.Stores_StoreId");
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Store");
                 });
 
             modelBuilder.Entity("ERP.Category", b =>
@@ -330,6 +378,13 @@ namespace MinimalAPIERP.Migrations
                     b.Navigation("CartItems");
 
                     b.Navigation("OrderDetails");
+
+                    b.Navigation("Rainchecks");
+                });
+
+            modelBuilder.Entity("ERP.Store", b =>
+                {
+                    b.Navigation("Rainchecks");
                 });
 #pragma warning restore 612, 618
         }

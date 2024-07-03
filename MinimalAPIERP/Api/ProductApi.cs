@@ -1,7 +1,8 @@
-﻿using ERP.Data;
+﻿using Domain.Dtos;
+using ERP.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
+using MinimalAPIERP.Extensions;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -28,55 +29,48 @@ internal static class ProductApi
             //ReferenceHandler = ReferenceHandler.Preserve
         };
 
-        group.MapGet("/products", async (AppDbContext db) =>
-    await db.Products.ToListAsync() is IList<Product> products
-        ? Results.Json(products, options)
+        group.MapGet("/products", async ([AsParameters] ApiDependencies dep) =>
+    await dep.Context.Products.ToListAsync() is IList<Product> products
+        ? Results.Json(dep.Mapper.Map<IList<ProductDto>>(products), options)
         : Results.NotFound())
     .WithOpenApi();
 
-        group.MapGet("/products/{id}", async (AppDbContext db, Guid id) =>
-            await db.Products.FindAsync(id) is Product product
-                ? Results.Json(product, options)
-                : Results.NotFound())
-            .WithOpenApi();
+        group.MapGet("/products/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
+     await dep.Context.Products.SingleOrDefaultAsync(p => p.ProductGuid == id) is Product product
+         ? Results.Json(dep.Mapper.Map<ProductDto>(product), options)
+         : Results.NotFound())
+     .WithOpenApi();
 
-        group.MapPost("/products", async (AppDbContext db, Product product) =>
+        // Endpoint para crear un producto
+        group.MapPost("/products", async ([AsParameters] ApiDependencies dep, ProductDto productDto) =>
         {
-            product.ProductGuid = Guid.NewGuid();
-            db.Products.Add(product);
-            await db.SaveChangesAsync();
-            return Results.Created($"/products/{product.ProductId}", product);
+            var product = dep.Mapper.Map<Product>(productDto);
+            dep.Context.Products.Add(product);
+            await dep.Context.SaveChangesAsync();
+
+            var resultDto = dep.Mapper.Map<ProductDto>(product);
+            return Results.Created($"/products/{resultDto.ProductId}", resultDto);
         }).WithOpenApi();
 
-        group.MapPut("/products/{id}", async (AppDbContext db, Guid id, Product updatedProduct) =>
+        // Endpoint para actualizar un producto
+        group.MapPut("/products/{id}", async ([AsParameters] ApiDependencies dep, Guid id, ProductDto updatedProductDto) =>
         {
-            var product = await db.Products.FindAsync(id);
+            var product = await dep.Context.Products.SingleOrDefaultAsync(p => p.ProductGuid == id);
             if (product is null) return Results.NotFound();
 
-            product.SkuNumber = updatedProduct.SkuNumber;
-            product.CategoryId = updatedProduct.CategoryId;
-            product.RecommendationId = updatedProduct.RecommendationId;
-            product.Title = updatedProduct.Title;
-            product.Price = updatedProduct.Price;
-            product.SalePrice = updatedProduct.SalePrice;
-            product.ProductArtUrl = updatedProduct.ProductArtUrl;
-            product.Description = updatedProduct.Description;
-            product.Created = updatedProduct.Created;
-            product.ProductDetails = updatedProduct.ProductDetails;
-            product.Inventory = updatedProduct.Inventory;
-            product.LeadTime = updatedProduct.LeadTime;
-
-            await db.SaveChangesAsync();
+            dep.Mapper.Map(updatedProductDto, product);
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 
-        group.MapDelete("/products/{id}", async (AppDbContext db, Guid id) =>
+        // Endpoint para eliminar un producto
+        group.MapDelete("/products/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
         {
-            var product = await db.Products.FindAsync(id);
+            var product = await dep.Context.Products.SingleOrDefaultAsync(p => p.ProductGuid == id);
             if (product is null) return Results.NotFound();
 
-            db.Products.Remove(product);
-            await db.SaveChangesAsync();
+            dep.Context.Products.Remove(product);
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 

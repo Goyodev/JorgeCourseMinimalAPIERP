@@ -82,8 +82,7 @@ namespace MinimalAPIERP.Migrations
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime", nullable: false),
                     ProductDetails = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Inventory = table.Column<int>(type: "int", nullable: false),
-                    LeadTime = table.Column<int>(type: "int", nullable: false)
+                    Inventory = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -106,7 +105,6 @@ namespace MinimalAPIERP.Migrations
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime", nullable: false),
-                    Guid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     CartItemGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>

@@ -1,0 +1,19 @@
+﻿@page "/"
+
+<RadzenCard Style="max-width: 300px;">
+    <ChildContent>
+        <RadzenImage Path="https://via.placeholder.com/300" Style="width: 100%; height: auto;" />
+        <RadzenContent>
+            <RadzenHeading Size="H5">Producto Ejemplo</RadzenHeading>
+            <p>Producto1</p>
+            <p><strong>Precio:</strong> $99.99</p>
+            <RadzenButton Text="Añadir a la Cesta" Icon="add_shopping_cart" Style="width: 100%;" Click="AddToCart"/>
+        </RadzenContent>
+    </ChildContent>
+</RadzenCard>
+
+@code {
+    void AddToCart()
+    {
+    }
+}

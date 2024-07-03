@@ -23,13 +23,11 @@ app.MapCustomHealthCheck(builder.Configuration);
 
 app.UseAntiforgery();
 
-app.DatabaseInit();
+await app.DatabaseInit();
 
 app.ConfigureSwagger();
 
-app.MapStoreApi();
 app.MapProductApi();
-app.MapRaincheckApi();
 app.MapCategoryApi();
 app.MapCartItemApi();
 app.MapOrderApi();

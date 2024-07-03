@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using MinimalAPIERP.Data;
 
 namespace ERP.Extensions
 {
@@ -100,23 +101,27 @@ namespace ERP.Extensions
             return routes;
         }
 
-        public static void DatabaseInit(this WebApplication app)
+        public static async Task DatabaseInit(this WebApplication app)
         {
-            // TODO: Buscar mejor solución
             using (var scope = app.Services.CreateScope())
             {
-                bool dbCreated = false;
-
+                var services = scope.ServiceProvider;
+                var logger = services.GetRequiredService<ILogger<Program>>();
                 try
                 {
-                    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                    dbCreated = context.Database.EnsureCreated();
-                    //if (dbCreated) DbInitializer.Initialize(context);
+                    var context = services.GetRequiredService<AppDbContext>();
+
+                    //Apply pending Migrations
+                    context.Database.Migrate();
+
+                    // Inicializar datos si es necesario
+                    await DbInitializer.InitializeAsync(context, logger);
+
+                    logger.LogInformation("Database initialization completed.");
                 }
                 catch (Exception ex)
                 {
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-                    logger.LogError(ex, "An error occurred creating the DB.");
+                    logger.LogError(ex, "An error occurred during database initialization.");
                 }
             }
 

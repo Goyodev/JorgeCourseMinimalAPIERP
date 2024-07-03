@@ -3,7 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.Blazor;
-using MinimalAPIERP.Dtos;
+using Domain.Dtos;
+using MinimalAPIERP.Extensions;
 using Newtonsoft.Json;
 using System.Security.Claims;
 using System.Text.Json;
@@ -25,47 +26,51 @@ internal static class CategoryApi
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         };
 
-        group.MapGet("/categories", async (AppDbContext db) =>
-            await db.Categories.ToListAsync() is IList<Category> categories
-                ? Results.Json(categories, options)
-                : Results.NotFound())
-            .WithOpenApi();
+        group.MapGet("/categories", async ([AsParameters] ApiDependencies dep) =>
+     await dep.Context.Categories.ToListAsync() is IList<Category> categories
+         ? Results.Json(categories, options)
+         : Results.NotFound())
+     .WithOpenApi();
 
-        group.MapGet("/categories/{id}", async (AppDbContext db, Guid id) =>
-            await db.Categories.FindAsync(id) is Category category
+        // Endpoint para obtener una categoría por ID
+        group.MapGet("/categories/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
+            await dep.Context.Categories.SingleOrDefaultAsync(c => c.CategoryGuid == id) is Category category
                 ? Results.Json(category, options)
                 : Results.NotFound())
             .WithOpenApi();
 
-        group.MapPost("/categories", async (AppDbContext db, Category category) =>
+        // Endpoint para crear una categoría
+        group.MapPost("/categories", async ([AsParameters] ApiDependencies dep, CategoryDto categoryDto) =>
         {
+            var category = dep.Mapper.Map<Category>(categoryDto);
             category.CategoryGuid = Guid.NewGuid();
-            db.Categories.Add(category);
-            await db.SaveChangesAsync();
-            return Results.Created($"/categories/{category.CategoryId}", category);
+            dep.Context.Categories.Add(category);
+            await dep.Context.SaveChangesAsync();
+
+            var resultDto = dep.Mapper.Map<CategoryDto>(category);
+            return Results.Created($"/categories/{resultDto.CategoryGuid}", resultDto);
         }).WithOpenApi();
 
-        group.MapPut("/categories/{id}", async (AppDbContext db, Guid id, Category updatedCategory) =>
+        // Endpoint para actualizar una categoría
+        group.MapPut("/categories/{id}", async ([AsParameters] ApiDependencies dep, Guid id, CategoryDto updatedCategoryDto) =>
         {
-            var category = await db.Categories.FindAsync(id);
+            var category = await dep.Context.Categories.SingleOrDefaultAsync(c => c.CategoryGuid == id);
             if (category is null) return Results.NotFound();
 
-            category.Name = updatedCategory.Name;
-            category.Description = updatedCategory.Description;
-            category.ImageUrl = updatedCategory.ImageUrl;
-            category.Products = updatedCategory.Products;
+            dep.Mapper.Map(updatedCategoryDto, category);
 
-            await db.SaveChangesAsync();
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 
-        group.MapDelete("/categories/{id}", async (AppDbContext db, Guid id) =>
+        // Endpoint para eliminar una categoría
+        group.MapDelete("/categories/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
         {
-            var category = await db.Categories.FindAsync(id);
+            var category = await dep.Context.Categories.SingleOrDefaultAsync(c => c.CategoryGuid == id);
             if (category is null) return Results.NotFound();
 
-            db.Categories.Remove(category);
-            await db.SaveChangesAsync();
+            dep.Context.Categories.Remove(category);
+            await dep.Context.SaveChangesAsync();
             return Results.NoContent();
         }).WithOpenApi();
 
