@@ -12,7 +12,8 @@ builder.Services.AddAntiforgery();
 builder.Services
     .AddCustomSqlServerDb(builder.Configuration)
     .AddCustomHealthCheck(builder.Configuration)
-    .AddCustomOpenApi(builder.Configuration);
+    .AddCustomOpenApi(builder.Configuration)
+    .AddCustomCors(builder.Configuration, "CorsConfig");
 
 builder.Services.AddAutoMapper(typeof(AutoMapperProfile));
 
@@ -32,5 +33,6 @@ app.MapCategoryApi();
 app.MapCartItemApi();
 app.MapOrderApi();
 app.MapOrderDetailApi();
+app.UseCors("CorsConfig");
 
 app.Run();

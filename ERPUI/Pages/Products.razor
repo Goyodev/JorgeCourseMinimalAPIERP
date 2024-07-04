@@ -1,19 +1,20 @@
 ﻿@page "/"
+@using Domain.Dtos
 
-<RadzenCard Style="max-width: 300px;">
-    <ChildContent>
-        <RadzenImage Path="https://via.placeholder.com/300" Style="width: 100%; height: auto;" />
-        <RadzenContent>
-            <RadzenHeading Size="H5">Producto Ejemplo</RadzenHeading>
-            <p>Producto1</p>
-            <p><strong>Precio:</strong> $99.99</p>
-            <RadzenButton Text="Añadir a la Cesta" Icon="add_shopping_cart" Style="width: 100%;" Click="AddToCart"/>
-        </RadzenContent>
-    </ChildContent>
-</RadzenCard>
+<RadzenDataList WrapItems="true" AllowPaging="false" Data="@products" TItem="ProductDto">
+    <Template Context="product">
+        <RadzenCard Style="max-width: 300px;">
+            <ChildContent>
+                <RadzenImage Path="https://via.placeholder.com/300" Style="width: 100%; height: auto;" />
+                <RadzenContent>
+                    <RadzenText TextStyle="TextStyle.Body1"><b>@product.Title</b></RadzenText>
+                    <p>@product.Description</p>
+                    <p><strong>Precio:</strong> @product.Price €</p>
+                    <RadzenButton Text="Añadir a la Cesta" Icon="add_shopping_cart" Style="width: 100%;" Click="@(id => AddToCart(product))" />
+                </RadzenContent>
+            </ChildContent>
+        </RadzenCard>
+    </Template>
+</RadzenDataList>
 
-@code {
-    void AddToCart()
-    {
-    }
-}
+<RadzenPager ShowPagingSummary="true" PagingSummaryFormat="@pagingSummaryFormat" HorizontalAlign="HorizontalAlign.Center" Count="count" PageSize="pageSize" PageNumbersCount="5" PageChanged="@PageChanged" />

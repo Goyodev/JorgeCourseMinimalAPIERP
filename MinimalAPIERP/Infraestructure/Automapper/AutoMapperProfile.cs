@@ -12,7 +12,9 @@ namespace MinimalAPIERP.Infraestructure.Automapper
 
             CreateMap<Product, ProductDto>().ReverseMap();
 
-            CreateMap<CartItem, CartItemDto>().ReverseMap();
+            CreateMap<CartItem, CartItemResponse>().ReverseMap();
+
+            CreateMap<CartItem, CartItemRequest>().ReverseMap();
 
         }
     }

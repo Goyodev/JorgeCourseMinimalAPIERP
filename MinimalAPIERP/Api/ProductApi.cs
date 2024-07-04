@@ -29,11 +29,30 @@ internal static class ProductApi
             //ReferenceHandler = ReferenceHandler.Preserve
         };
 
-        group.MapGet("/products", async ([AsParameters] ApiDependencies dep) =>
-    await dep.Context.Products.ToListAsync() is IList<Product> products
-        ? Results.Json(dep.Mapper.Map<IList<ProductDto>>(products), options)
-        : Results.NotFound())
-    .WithOpenApi();
+        group.MapGet("/products", async ([AsParameters] ApiDependencies dep, int pageNumber = 1, int pageSize = 10) =>
+        {
+            int totalProds = await dep.Context.Products.CountAsync();
+            var products = await dep.Context.Products
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            if (!products.Any())
+            {
+                return Results.NotFound();
+            }
+
+            var productDtos = dep.Mapper.Map<IList<ProductDto>>(products);
+
+            return Results.Json(new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalProducts = totalProds,
+                Products = productDtos
+            }, options);
+        })
+        .WithOpenApi();
 
         group.MapGet("/products/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
      await dep.Context.Products.SingleOrDefaultAsync(p => p.ProductGuid == id) is Product product

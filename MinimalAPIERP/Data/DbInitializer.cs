@@ -13,11 +13,10 @@ namespace MinimalAPIERP.Data
             try
             {
                 // Evitar duplicados verificando si ya hay datos
-                if (!context.Categories.Any() && !context.Products.Any() && !context.Carts.Any() && !context.CartItems.Any())
+                if (!context.Categories.Any() && !context.Products.Any() && !context.CartItems.Any())
                 {
                     var categories = new List<Category>();
                     var products = new List<Product>();
-                    var carts = new List<Cart>();
                     var cartItems = new List<CartItem>();
 
                     for (int i = 1; i <= 10; i++)
@@ -47,19 +46,11 @@ namespace MinimalAPIERP.Data
                             products.Add(product);
                         }
 
-                        var cart = new Cart
-                        {
-                            UserId = i,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        carts.Add(cart);
-
-                        for (int k = 1; k <= 10; k++)
+                        for (int k = 1; k <= 2; k++)
                         {
                             var cartItem = new CartItem
                             {
                                 Product = products[i * 10 - 10 + k - 1],
-                                Cart = cart,
                                 Count = k,
                                 DateCreated = DateTime.UtcNow
                             };
@@ -69,7 +60,6 @@ namespace MinimalAPIERP.Data
 
                     await context.Categories.AddRangeAsync(categories);
                     await context.Products.AddRangeAsync(products);
-                    await context.Carts.AddRangeAsync(carts);
                     await context.CartItems.AddRangeAsync(cartItems);
                     await context.SaveChangesAsync();
                 }

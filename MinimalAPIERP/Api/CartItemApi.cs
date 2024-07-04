@@ -25,28 +25,29 @@ internal static class CartItemApi
 
         group.MapGet("/cartitems", async ([AsParameters] ApiDependencies dep) =>
         await dep.Context.CartItems.Include(ci => ci.Product).ToListAsync() is IList<CartItem> cartItems
-        ? Results.Json(dep.Mapper.Map<IList<CartItemDto>>(cartItems), options)
+        ? Results.Json(dep.Mapper.Map<IList<CartItemResponse>>(cartItems), options)
         : Results.NotFound())
     .WithOpenApi();
 
         group.MapGet("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id) =>
             await dep.Context.CartItems.Include(ci => ci.Product).SingleOrDefaultAsync(ci => ci.CartItemGuid == id) is CartItem cartItem
-                ? Results.Json(dep.Mapper.Map<CartItemDto>(cartItem), options)
+                ? Results.Json(dep.Mapper.Map<CartItemResponse>(cartItem), options)
                 : Results.NotFound())
             .WithOpenApi();
 
-        group.MapPost("/cartitems", async ([AsParameters] ApiDependencies dep, CartItemDto cartItemDto) =>
+        group.MapPost("/cartitems", async ([AsParameters] ApiDependencies dep, CartItemRequest cartItemDto) =>
         {
             var cartItem = dep.Mapper.Map<CartItem>(cartItemDto);
             cartItem.CartItemGuid = Guid.NewGuid();
-            dep.Context.CartItems.Add(cartItem);
+            cartItem.DateCreated = DateTime.UtcNow;
+            dep.Context.CartItems.Add(cartItem); 
             await dep.Context.SaveChangesAsync();
 
-            var resultDto = dep.Mapper.Map<CartItemDto>(cartItem);
+            var resultDto = dep.Mapper.Map<CartItemRequest>(cartItem);
             return Results.Created($"/cartitems/{resultDto.CartItemId}", resultDto);
         }).WithOpenApi();
 
-        group.MapPut("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id, CartItemDto updatedCartItemDto) =>
+        group.MapPut("/cartitems/{id}", async ([AsParameters] ApiDependencies dep, Guid id, CartItemRequest updatedCartItemDto) =>
         {
             var cartItem = await dep.Context.CartItems.Include(ci => ci.Product).SingleOrDefaultAsync(ci => ci.CartItemGuid == id);
             if (cartItem is null) return Results.NotFound();

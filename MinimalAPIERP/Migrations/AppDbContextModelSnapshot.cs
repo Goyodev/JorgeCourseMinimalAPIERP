@@ -22,29 +22,6 @@ namespace MinimalAPIERP.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("ERP.Cart", b =>
-                {
-                    b.Property<int>("CartId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartId"));
-
-                    b.Property<Guid>("CartGuid")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime");
-
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("CartId")
-                        .HasName("PK_dbo.Carts");
-
-                    b.ToTable("Carts");
-                });
-
             modelBuilder.Entity("ERP.CartItem", b =>
                 {
                     b.Property<int>("CartItemId")
@@ -52,9 +29,6 @@ namespace MinimalAPIERP.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CartItemId"));
-
-                    b.Property<int>("CartId")
-                        .HasColumnType("int");
 
                     b.Property<Guid>("CartItemGuid")
                         .HasColumnType("uniqueidentifier");
@@ -70,8 +44,6 @@ namespace MinimalAPIERP.Migrations
 
                     b.HasKey("CartItemId")
                         .HasName("PK_dbo.CartItems");
-
-                    b.HasIndex(new[] { "CartId" }, "IX_CartId");
 
                     b.HasIndex(new[] { "ProductId" }, "IX_ProductId");
 
@@ -258,21 +230,12 @@ namespace MinimalAPIERP.Migrations
 
             modelBuilder.Entity("ERP.CartItem", b =>
                 {
-                    b.HasOne("ERP.Cart", "Cart")
-                        .WithMany("CartItems")
-                        .HasForeignKey("CartId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired()
-                        .HasConstraintName("FK_dbo.CartItems_dbo.Products_CartId");
-
                     b.HasOne("ERP.Product", "Product")
                         .WithMany("CartItems")
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_dbo.CartItems_dbo.Products_ProductId");
-
-                    b.Navigation("Cart");
 
                     b.Navigation("Product");
                 });
@@ -308,11 +271,6 @@ namespace MinimalAPIERP.Migrations
                         .HasConstraintName("FK_dbo.Products_dbo.Categories_CategoryId");
 
                     b.Navigation("Category");
-                });
-
-            modelBuilder.Entity("ERP.Cart", b =>
-                {
-                    b.Navigation("CartItems");
                 });
 
             modelBuilder.Entity("ERP.Category", b =>

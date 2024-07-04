@@ -63,8 +63,8 @@ namespace ERP.Extensions
                 options.AddPolicy(policyName,
                     policy =>
                     {
-                        policy.WithOrigins("https://*.tipesoft.com",
-                                            "https://open-devlabs.com")
+                        policy.WithOrigins("http://localhost:5117",
+                                            "https://localhost:7028")
                                             .AllowAnyHeader()
                                             .AllowAnyMethod();
                     });
@@ -124,7 +124,6 @@ namespace ERP.Extensions
                     logger.LogError(ex, "An error occurred during database initialization.");
                 }
             }
-
         }
 
         public static void ConfigureSwagger(this WebApplication app)

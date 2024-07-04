@@ -52,20 +52,6 @@ namespace MinimalAPIERP.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Stores",
-                columns: table => new
-                {
-                    StoreId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    StoreGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_dbo.Stores", x => x.StoreId);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Products",
                 columns: table => new
                 {
@@ -74,10 +60,8 @@ namespace MinimalAPIERP.Migrations
                     ProductGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     SkuNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     CategoryId = table.Column<int>(type: "int", nullable: false),
-                    RecommendationId = table.Column<int>(type: "int", nullable: false),
                     Title = table.Column<string>(type: "nvarchar(160)", maxLength: 160, nullable: false),
                     Price = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    SalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ProductArtUrl = table.Column<string>(type: "nvarchar(1024)", maxLength: 1024, nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Created = table.Column<DateTime>(type: "datetime", nullable: false),
@@ -101,7 +85,6 @@ namespace MinimalAPIERP.Migrations
                 {
                     CartItemId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    CartId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ProductId = table.Column<int>(type: "int", nullable: false),
                     Count = table.Column<int>(type: "int", nullable: false),
                     DateCreated = table.Column<DateTime>(type: "datetime", nullable: false),
@@ -147,36 +130,6 @@ namespace MinimalAPIERP.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Rainchecks",
-                columns: table => new
-                {
-                    RaincheckId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    RaincheckGuid = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ProductId = table.Column<int>(type: "int", nullable: false),
-                    Count = table.Column<int>(type: "int", nullable: false),
-                    SalePrice = table.Column<double>(type: "float", nullable: false),
-                    StoreId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_dbo.Rainchecks", x => x.RaincheckId);
-                    table.ForeignKey(
-                        name: "FK_dbo.Rainchecks_dbo.Products_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Products",
-                        principalColumn: "ProductId",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_dbo.Rainchecks_dbo.Stores_StoreId",
-                        column: x => x.StoreId,
-                        principalTable: "Stores",
-                        principalColumn: "StoreId",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_ProductId",
                 table: "CartItems",
@@ -196,16 +149,6 @@ namespace MinimalAPIERP.Migrations
                 name: "IX_CategoryId",
                 table: "Products",
                 column: "CategoryId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_ProductId",
-                table: "Rainchecks",
-                column: "ProductId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_StoreId",
-                table: "Rainchecks",
-                column: "StoreId");
         }
 
         /// <inheritdoc />
@@ -218,16 +161,10 @@ namespace MinimalAPIERP.Migrations
                 name: "OrderDetails");
 
             migrationBuilder.DropTable(
-                name: "Rainchecks");
-
-            migrationBuilder.DropTable(
                 name: "Orders");
 
             migrationBuilder.DropTable(
                 name: "Products");
-
-            migrationBuilder.DropTable(
-                name: "Stores");
 
             migrationBuilder.DropTable(
                 name: "Categories");

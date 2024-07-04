@@ -1,6 +1,46 @@
 ﻿@page "/Basket"
+@using Domain.Dtos
 <h3>Basket</h3>
 
-@code {
+@inject NavigationManager NavigationManager
 
-}
+<div class="container">
+    <RadzenHeading Size="H3">Carrito de Compras</RadzenHeading>
+    @if (cartItems.Count == 0)
+    {
+        <p>No hay productos en el carrito.</p>
+    }
+    else
+    {
+        <RadzenGrid Data="@cartItems" TItem="CartItemResponse" ColumnWidth="200px">
+            <Columns>
+                <RadzenGridColumn TItem="CartItemResponse" Property="Product.ImageUrl" Title="Imagen">
+                    <Template Context="item">
+                        <RadzenImage Path="@item.Product.ProductArtUrl" Style="width: 100px; height: auto;" />
+                    </Template>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="CartItemResponse" Property="Product.Title" Title="Producto" />
+                <RadzenGridColumn TItem="CartItemResponse" Property="Product.Price" Title="Precio">
+                    <Template Context="item">
+                        <p>@item.Product.Price.ToString("C")</p>
+                    </Template>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="CartItemResponse" Property="Quantity" Title="Cantidad">
+                    <Template Context="item">
+                        <RadzenNumeric @bind-Value="item.Count" Min="1" Style="width: 70px;" />
+                    </Template>
+                </RadzenGridColumn>
+                <RadzenGridColumn TItem="CartItemResponse" Title="Acciones">
+                    <Template Context="item">
+                        <RadzenButton Text="Eliminar" Icon="delete" Style="margin-left: 10px;" IsBusy="DeleteIsBusy" Click="@(() => RemoveFromCart(item))" />
+                    </Template>
+                </RadzenGridColumn>
+            </Columns>
+        </RadzenGrid>
+        <div class="total">
+            <p><strong>Total: </strong>@cartItems.Sum(item => item.Product.Price * item.Count).ToString("C")</p>
+        </div>
+        <RadzenButton Text="Proceder al Pago" Icon="payment" Click="ProceedToCheckout" Style="margin-top: 20px;" />
+    }
+</div>
+

@@ -8,7 +8,6 @@
         public int RecommendationId { get; set; }
         public string Title { get; set; } = null!;
         public decimal Price { get; set; }
-        public decimal SalePrice { get; set; }
         public string? ProductArtUrl { get; set; }
         public string Description { get; set; } = null!;
         public DateTime Created { get; set; }
@@ -25,12 +24,22 @@
         public string? ImageUrl { get; set; }
         public Guid CategoryGuid { get; set; } = Guid.NewGuid();
     }
-    public class CartItemDto
+    public class CartItemResponse
     {
         public int CartItemId { get; set; }
-        public string CartId { get; set; } = null!;
+        public int ProductId { get; set; }
+        public ProductDto? Product { get; set; }
+        public int Count { get; set; }
+        public Guid CartItemGuid { get; set; } = Guid.NewGuid();
+        public DateTime DateCreated { get; set; }
+    }
+    
+    public class CartItemRequest
+    {
+        public int CartItemId { get; set; }
         public int ProductId { get; set; }
         public int Count { get; set; }
+        public Guid CartItemGuid { get; set; } = Guid.NewGuid();
         public DateTime DateCreated { get; set; }
     }
 }
